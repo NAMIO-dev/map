@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <style>
-:root{ --brand-purple:#634290; --cream:#FFE9C6 }
+:root{ --brand-purple:#6A4FE7; --cream:#FFE9C6 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 .topbar{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #e5e7eb;background:#fff;position:sticky;top:0;z-index:1000}
@@ -30,8 +30,9 @@ main{height:calc(100% - 56px);position:relative}
 #map,#liteMap{height:100%;width:100%}
 .leaflet-container{background:var(--cream)}
 /* list view */
-#listview{display:none;height:100%;overflow:auto;background:#fff;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:14px}
-.card{background:var(--cream);border:1px solid #e5e7eb;border-radius:12px;padding:12px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+#listview{display:none;height:100%;overflow:auto;background:#fafaf9}
+.list-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:14px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
 .card h3{margin:0 0 6px 0;font-size:16px;color:#111}
 .card .meta{color:#374151;font-size:13px;line-height:1.35}
 .card .row{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
@@ -69,76 +70,6 @@ main{height:calc(100% - 56px);position:relative}
 .lite-cluster{position:absolute;transform:translate(-21px,-14px)}
 .lite-zoom{position:absolute;left:10px;top:70px;display:flex;flex-direction:column;gap:6px;z-index:9999}
 .lite-zoom button{width:32px;height:32px;border:2px solid var(--brand-purple);border-radius:8px;background:var(--brand-purple);color:#fff;font-weight:800;cursor:pointer}
-body{background:#fff;
-}
-.leaflet-popup-content-wrapper{
-  border-radius: 12px;
-}
-
-
-/* === List view tuned styles === */
-#listview{ background:#fff; padding-bottom: var(--bar-h); }
-.list-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:24px; padding:16px 20px 88px; align-content:start; }
-.card{ background:var(--cream); border:1.5px solid #e2e8f0; border-radius:14px; padding:16px 18px; box-shadow:0 1px 0 rgba(0,0,0,.03); }
-.card h3{ margin:0 0 8px 0; font-size:20px; line-height:1.2; color:#111; font-weight:800; }
-.card .meta{ color:#374151; font-size:14px; line-height:1.35; }
-.card .phone{ margin-top:6px; display:flex; align-items:center; gap:8px; }
-.card .phone a{ color:var(--brand-purple); font-weight:600; text-decoration:underline; }
-.card .actions{ margin-top:12px; }
-.card a.btn-sm{ font-size:13px; padding:8px 12px; border-radius:10px; background:var(--brand-purple); border:1px solid var(--brand-purple); color:#fff; text-decoration:none }
-
-
-/* --- Cream map popups --- */
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip{
-  background: var(--cream) !important;
-}
-.leaflet-popup-content-wrapper{
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-}
-/* fallback custom popup */
-.popup{
-  background: var(--cream);
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-}
-
-
-/* Hide footer when body has .hide-footer (used for List view) */
-.hide-footer .bottom-bar{ display:none !important; }
-
-
-/* Row combining phone and directions */
-.card .row-flex{
-  margin-top:12px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-.card .row-flex .phone{
-  display:flex; align-items:center; gap:8px; color:var(--brand-purple);
-}
-.card .row-flex .phone a{ color:var(--brand-purple); font-weight:600; text-decoration:underline; }
-
-
-/* Remove gray outline/border from map popups */
-.leaflet-popup-content-wrapper, .leaflet-popup-tip{
-  background: var(--cream) !important;
-  border: none !important;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08); /* optional soft shadow */
-}
-.popup{
-  background: var(--cream);
-  border: none !important;
-}
-
-
-/* Purple titles for store names in both views */
-.card h3{ color: var(--brand-purple) !important; }
-.popup h3, .leaflet-popup-content h3{ color: var(--brand-purple) !important; }
-
 </style>
 </head>
 <body>
@@ -149,7 +80,8 @@ body{background:#fff;
       </a>
     </div>
     <div class="controls">
-      <button id="toggleBtn" class="btn">Card view</button>
+      <button id="nearBtn" class="btn">Near me</button>
+      <button id="toggleBtn" class="btn">List view</button>
     </div>
   </header>
 
@@ -184,7 +116,7 @@ body{background:#fff;
   </main>
 
   <script>
-    const LOCATIONS = [{"name": "Sir Smoke A-Lot Smoke Shop", "address": "16934 S Dixie Hwy", "city": "Palmetto Bay", "state": "FL", "zip": "33157", "lat": 25.622, "lng": -80.335, "phone": "786-701-9985"}, {"name": "Sir Vape A-Lot", "address": "18710 SW 107 Ave", "city": "Cutler Bay", "state": "FL", "zip": "33157", "lat": 25.59, "lng": -80.361, "phone": "786-701-8338"}, {"name": "In Da Cut Smoke Shop", "address": "7352 SW 41 St", "city": "Miami", "state": "FL", "zip": "33155", "lat": 25.7335, "lng": -80.316, "phone": "305-631-2588"}, {"name": "Pink Hippo", "address": "24852 SW 177 Ave", "city": "Homestead", "state": "FL", "zip": "33031", "lat": 25.5507, "lng": -80.4749, "phone": "786-601-9030"}, {"name": "House of Zaza 1", "address": "1785 E 4th Ave", "city": "Hialeah", "state": "FL", "zip": "33010", "lat": 25.8395, "lng": -80.271, "phone": "305-418-0279"}, {"name": "House of Zaza 2", "address": "2588 W 84th St", "city": "Hialeah", "state": "FL", "zip": "33016", "lat": 25.8909, "lng": -80.3348, "phone": ""}, {"name": "Pink Hippo 2", "address": "8003 NW 95th St Unit 7", "city": "Hialeah Gardens", "state": "FL", "zip": "33016", "lat": 25.8648, "lng": -80.3335, "phone": "786-631-3774"}, {"name": "Love Smoke Miami", "address": "37 NE 5th St", "city": "Miami", "state": "FL", "zip": "33132", "lat": 25.7767, "lng": -80.1903, "phone": "786-206-3632"}, {"name": "Smoking Loud Smoke Shop", "address": "237 NW 12th Ave, Suite D", "city": "Miami", "state": "FL", "zip": "33128", "lat": 25.7798, "lng": -80.2105, "phone": ""}, {"name": "A Plus Smoke Shop", "address": "27333 S Dixie Hwy", "city": "Homestead", "state": "FL", "zip": "33032", "lat": 25.516, "lng": -80.402, "phone": "305-245-5588"}, {"name": "Smoove’s Smoke Shop Miramar", "address": "2301 Palm Ave #103", "city": "Miramar", "state": "FL", "zip": "33025", "lat": 25.9865, "lng": -80.277, "phone": "305-992-1445"}];
+    const LOCATIONS = [{"name": "Sir Smoke A-Lot Smoke Shop", "address": "16934 S Dixie Hwy", "city": "Palmetto Bay", "state": "FL", "zip": "33157", "lat": 25.622, "lng": -80.335, "phone": "786-701-9985"}, {"name": "Sir Vape A-Lot", "address": "18710 SW 107 Ave", "city": "Cutler Bay", "state": "FL", "zip": "33157", "lat": 25.59, "lng": -80.361, "phone": "786-701-8338"}, {"name": "In Da Cut Smoke Shop", "address": "7352 SW 41 St", "city": "Miami", "state": "FL", "zip": "33155", "lat": 25.7335, "lng": -80.316, "phone": "305-631-2588"}, {"name": "Pink Hippo", "address": "24852 SW 177 Ave", "city": "Homestead", "state": "FL", "zip": "33031", "lat": 25.5507, "lng": -80.4749, "phone": "786-601-9030"}, {"name": "House of Zaza 1", "address": "1785 E 4th Ave", "city": "Hialeah", "state": "FL", "zip": "33010", "lat": 25.8395, "lng": -80.271, "phone": "305-418-0279"}, {"name": "House of Zaza 2", "address": "2588 W 84th St", "city": "Hialeah", "state": "FL", "zip": "33016", "lat": 25.8909, "lng": -80.3348, "phone": ""}, {"name": "Pink Hippo 2", "address": "8003 NW 95th St Unit 7", "city": "Hialeah Gardens", "state": "FL", "zip": "33016", "lat": 25.8648, "lng": -80.3335, "phone": "786-631-3774"}, {"name": "Love Smoke Miami", "address": "37 NE 5th St", "city": "Miami", "state": "FL", "zip": "33132", "lat": 25.7767, "lng": -80.1903, "phone": "786-206-3632"}, {"name": "Smoking Loud Smoke Shop", "address": "237 NW 12th Ave, Suite D", "city": "Miami", "state": "FL", "zip": "33128", "lat": 25.7798, "lng": -80.2105, "phone": ""}, {"name": "A Plus Smoke Shop", "address": "27333 S Dixie Hwy", "city": "Homestead", "state": "FL", "zip": "33032", "lat": 25.516, "lng": -80.402, "phone": "305-245-5588"}, {"name": "Smoove’s Smoke Shop Miramar", "address": "2301 Palm Ave #103", "city": "Miramar", "state": "FL", "zip": "33025", "lat": 25.9865, "lng": -80.277, "phone": "305-992-1445"}, {"name": "Smoke Miami", "address": "161 SW 72 St", "city": "Miami", "state": "FL", "zip": "33193", "lat": 25.698, "lng": -80.446, "phone": "305-848-7172"}];
     const COIN = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9J2cnIGN4PSczMCUnIGN5PSczMCUnIHI9JzcwJSc+CiAgICAgIDxzdG9wIG9mZnNldD0nMCUnIHN0b3AtY29sb3I9JyNGRkYzQjAnLz4KICAgICAgPHN0b3Agb2Zmc2V0PSc1NSUnIHN0b3AtY29sb3I9JyNGN0M5NDgnLz4KICAgICAgPHN0b3Agb2Zmc2V0PScxMDAlJyBzdG9wLWNvbG9yPScjRTBBODAwJy8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSdyaW0nIHgxPScwJyB4Mj0nMSc+CiAgICAgIDxzdG9wIG9mZnNldD0nMCUnIHN0b3AtY29sb3I9JyNGMEI0MjknLz4KICAgICAgPHN0b3Agb2Zmc2V0PScxMDAlJyBzdG9wLWNvbG9yPScjQzk4QTAwJy8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8Y2lyY2xlIGN4PScxMicgY3k9JzEyJyByPSc4LjUnIGZpbGw9J3VybCgjZyknIHN0cm9rZT0ndXJsKCNyaW0pJyBzdHJva2Utd2lkdGg9JzEuNScvPgogIDxjaXJjbGUgY3g9JzEyJyBjeT0nMTInIHI9JzUuMycgZmlsbD0nbm9uZScgc3Ryb2tlPScjRkZFMDgzJyBzdHJva2Utd2lkdGg9JzEuMicgb3BhY2l0eT0nLjknLz4KICA8cGF0aCBkPSdNNy44IDcuNmwuOC0xLjkuOCAxLjkgMS45LjgtMS45LjgtLjggMS45LS44LTEuOS0xLjktLjggMS45LS44eicgZmlsbD0nI0ZGRjdDQycgb3BhY2l0eT0nLjknLz4KPC9zdmc+";
 
     const MIAD_BOUNDS = (function() {
@@ -200,7 +132,7 @@ body{background:#fff;
     });
 
     function initLeaflet() {
-      const map = L.map('map', { scrollWheelZoom:true, preferCanvas:true }); window.__cc_map = map;
+      const map = L.map('map', { scrollWheelZoom:true, preferCanvas:true });
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
 
       const sodaIcon = L.icon({ iconUrl: COIN, iconSize:[26,26], iconAnchor:[13,13], popupAnchor:[0,-12] });
@@ -231,7 +163,7 @@ body{background:#fff;
 
       const b = L.latLngBounds(LOCATIONS.map(r=>[r.lat,r.lng])); map.fitBounds(b.pad(0.08));
 
-      document.getElementById('nearBtn')/*removed*/.addEventListener('click', ()=>{
+      document.getElementById('nearBtn').addEventListener('click', ()=>{
         if(!navigator.geolocation) return alert('Geolocation not supported');
         navigator.geolocation.getCurrentPosition(pos=>{
           const ll=[pos.coords.latitude,pos.coords.longitude];
@@ -330,7 +262,7 @@ body{background:#fff;
       function showPopup(r, x, y){
         const existing = document.getElementById('litePopup'); if(existing) existing.remove();
         const div=document.createElement('div'); div.id='litePopup';
-        div.style.cssText='position:absolute;left:'+(x+6)+'px;top:'+(y-6)+'px;background:var(--cream);border:1px solid #e5e7eb;border-radius:10px;padding:10px;box-shadow:0 6px 16px rgba(0,0,0,.12);pointer-events:auto;max-width:240px;font-size:13px;';
+        div.style.cssText='position:absolute;left:'+(x+6)+'px;top:'+(y-6)+'px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px;box-shadow:0 6px 16px rgba(0,0,0,.12);pointer-events:auto;max-width:240px;font-size:13px;';
         const addr=[r.address,r.city,r.state,r.zip].filter(Boolean).join(', ');
         div.innerHTML=`<div style="font-weight:800;margin-bottom:4px;color:#111">${r.name}</div>
                        <div style="margin-bottom:6px;color:#374151">${addr}</div>
@@ -357,7 +289,7 @@ body{background:#fff;
       document.getElementById('zIn').onclick=()=>{ zoom=Math.min(19, zoom+1); updateCenterPx(); render(); };
       document.getElementById('zOut').onclick=()=>{ zoom=Math.max(3, zoom-1); updateCenterPx(); render(); };
 
-      document.getElementById('nearBtn')/*removed*/.addEventListener('click', ()=>{
+      document.getElementById('nearBtn').addEventListener('click', ()=>{
         if(!navigator.geolocation) return alert('Geolocation not supported');
         navigator.geolocation.getCurrentPosition(pos=>{
           center.lat=pos.coords.latitude; center.lng=pos.coords.longitude; zoom=13; updateCenterPx(); render();
@@ -378,7 +310,7 @@ body{background:#fff;
       const listEl=document.getElementById('listview'); const btn=document.getElementById('toggleBtn');
       const showingList = listEl.style.display==='block';
       if(!showingList) renderList();
-      if(showingList){ listEl.style.display='none'; document.getElementById('map').style.display=''; const lite=document.getElementById('liteMap'); if(lite) lite.style.display=(window.L?'none':'block'); btn.textContent='Card view'; }
+      if(showingList){ listEl.style.display='none'; document.getElementById('map').style.display=''; const lite=document.getElementById('liteMap'); if(lite) lite.style.display=(window.L?'none':'block'); btn.textContent='List view'; }
       else { listEl.style.display='block'; document.getElementById('map').style.display='none'; const lite=document.getElementById('liteMap'); if(lite) lite.style.display='none'; btn.textContent='Map view'; }
     }
 
@@ -386,360 +318,20 @@ body{background:#fff;
       const grid=document.getElementById('listGrid'); grid.innerHTML='';
       function fullAddress(r){ return [r.address,r.city,r.state,r.zip].filter(Boolean).join(", "); }
       function gmapsLink(r){ return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(fullAddress(r)); }
-      const phoneIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 01.96-.26c1.05.26 2.18.4 3.33.4a1 1 0 011 1v3.5a1 1 0 01-1 1C12.42 21.83 2.17 11.58 2.17 2a1 1 0 011-1H6.67a1 1 0 011 1c0 1.15.14 2.28.4 3.33a1 1 0 01-.26.96l-2.2 2.2z" fill="currentColor"/></svg>';
       const sorted=LOCATIONS.slice().sort((a,b)=> (a.city||'').localeCompare(b.city||'') || (a.name||'').localeCompare(b.name||''));
       sorted.forEach(r=>{
-        const addr = fullAddress(r);
-        const phoneHTML = r.phone ? `<span class="phone">${phoneIcon} <a href="tel:${r.phone}">${r.phone}</a></span>` : '';
-        const dirHTML = `<a class="btn-sm" target="_blank" rel="noopener" href="${gmapsLink(r)}">Directions</a>`;
-        const row = `<div class="row-flex">${dirHTML} ${phoneHTML}</div>`;
-        const html = `<div class="card">
-            <h3>${r.name}</h3>
-            <div class="meta">${addr}</div>
-            ${row}
-          </div>`;
-        const wrap = document.createElement('div'); wrap.innerHTML = html; grid.appendChild(wrap.firstChild);
+        const phone=r.phone?`<div class="meta">📞 <a href="tel:${r.phone}">${r.phone}</a></div>`:'';
+        const html=`<div class="card">
+          <h3>${r.name}</h3>
+          <div class="meta">${fullAddress(r)}</div>
+          ${phone}
+          <div class="row">
+            <a class="btn-sm" target="_blank" rel="noopener" href="${gmapsLink(r)}">Directions</a>
+          </div>
+        </div>`;
+        const wrap=document.createElement('div'); wrap.innerHTML=html; grid.appendChild(wrap.firstChild);
       });
     }
   </script>
-
-<style>
-
-/* --- Bottom legend bar (overlay) --- */
-:root { --bar-h: 64px; }
-.bottom-bar {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  height: var(--bar-h);
-  background: #fff;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  box-shadow: 0 -6px 16px rgba(0,0,0,.08);
-}
-.bottom-bar .bar-legend { display:flex; align-items:center; gap:24px; font-size:12px; color:#111; }
-.bottom-bar .legend-row{ display:flex; align-items:center; gap:8px; white-space:nowrap; }
-.bottom-bar .coin{ width:18px; height:18px; }
-.bottom-bar .icon-multi{ position:relative; width:34px; height:22px; }
-.bottom-bar .icon-multi img{ position:absolute; width:18px; height:18px; border-radius:50%; box-shadow:0 1px 0 rgba(0,0,0,.22); }
-.bottom-bar .icon-multi .c1{ left:0; top:2px; }
-.bottom-bar .icon-multi .c2{ left:9px; top:0; }
-.bottom-bar .icon-multi .c3{ left:18px; top:2px; }
-/* Ensure list view content isn't hidden behind bar */
-#listview{ padding-bottom: var(--bar-h); }
-
-</style>
-<script>
-
-// --- Inject bottom legend bar after map + markers are ready ---
-(function(){
-  function injectFooterLegend(){
-    // If already present, skip
-    if (document.querySelector('.bottom-bar')) return;
-    var bar = document.createElement('div');
-    bar.className = 'bottom-bar';
-    // Use the same COIN icon as markers
-    var html = '';
-    html += '<div class="bar-legend">';
-    html +=   '<div class="legend-row"><img class="coin" src="'+ (typeof COIN !== 'undefined' ? COIN : '') + '" alt="coin"/> <span>Single store</span></div>';
-    html +=   '<div class="legend-row"><span class="icon-multi">'
-             + '<img src="'+ (typeof COIN !== 'undefined' ? COIN : '') + '" class="c1" alt="coin"/>'
-             + '<img src="'+ (typeof COIN !== 'undefined' ? COIN : '') + '" class="c2" alt="coin"/>'
-             + '<img src="'+ (typeof COIN !== 'undefined' ? COIN : '') + '" class="c3" alt="coin"/></span> '
-             + '<span>Clustered stores</span></div>';
-    html += '</div>';
-    bar.innerHTML = html;
-    document.body.appendChild(bar);
-  }
-  // Try after load, and also after the map initializes if those hooks exist
-  window.addEventListener('load', function(){ setTimeout(injectFooterLegend, 100); });
-  // If leaflet init function exists, patch it to call legend inject at the end
-  try {
-    var origInitLeaflet = window.initLeaflet;
-    if (typeof origInitLeaflet === 'function'){
-      window.initLeaflet = function(){ var r = origInitLeaflet.apply(this, arguments); try{ injectFooterLegend(); }catch(e){} return r; };
-    }
-  } catch(e){}
-  try {
-    var origInitLiteMap = window.initLiteMap;
-    if (typeof origInitLiteMap === 'function'){
-      window.initLiteMap = function(){ var r = origInitLiteMap.apply(this, arguments); try{ injectFooterLegend(); }catch(e){} return r; };
-    }
-  } catch(e){}
-})();
-
-</script>
-
-<style>
-
-/* Hide the old floating legend completely */
-.legend{ display:none !important; visibility:hidden !important; opacity:0 !important; }
-/* Highlight style for nearest store card */
-.card.nearest{
-  outline: 3px solid var(--brand-purple);
-  box-shadow: 0 0 0 4px rgba(106,79,231,0.18);
-  position: relative;
-}
-.card.nearest::after{
-  content: "Nearest";
-  position: absolute; top: 8px; right: 10px;
-  background: var(--brand-purple); color:#fff;
-  font-size: 11px; font-weight: 800;
-  padding: 2px 6px; border-radius: 999px;
-}
-
-</style>
-<script>
-
-
-// ===== CRYPTOCREAM Enhancements =====
-(function(){
-  // 1) Hide/remove any old floating legend UI
-  function removeOldLegend(){
-    document.querySelectorAll('.legend').forEach(el => el.remove());
-  }
-
-  // 2) Haversine + helpers
-  function toRad(t){ return t*Math.PI/180; }
-  function distKm(a,b){
-    const R=6371;
-    const dLat=toRad(b.lat-a.lat), dLon=toRad(b.lng-a.lng);
-    const la=toRad(a.lat), lb=toRad(b.lat);
-    const h=Math.sin(dLat/2)**2 + Math.cos(la)*Math.cos(lb)*Math.sin(dLon/2)**2;
-    return 2*R*Math.asin(Math.sqrt(h));
-  }
-  function fullAddress(r){ return [r.address,r.city,r.state,r.zip].filter(Boolean).join(", "); }
-  function gmapsLink(r){ return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(fullAddress(r)); }
-
-  // 3) Nearest store by coords
-  function nearestStore(lat, lng){
-    let best=null, bestD=1e12;
-    const rows = (window.LOCATIONS||[]);
-    for(let i=0;i<rows.length;i++){
-      const r=rows[i]; const d=distKm({lat,lng},{lat:r.lat,lng:r.lng});
-      if(d<bestD){ bestD=d; best=r; }
-    }
-    return {store:best, km:bestD};
-  }
-
-  // 4) Highlight in list view
-  function highlightNearestCard(store){
-    const list = document.getElementById('listview');
-    if (!list || list.style.display !== 'block' || !store) return;
-    list.querySelectorAll('.card.nearest').forEach(el => el.classList.remove('nearest'));
-    const cards = list.querySelectorAll('.card');
-    let target=null;
-    cards.forEach(card=>{
-      const t = (card.textContent||"").trim();
-      if(!target && t.indexOf(store.name)!==-1) target = card;
-    });
-    if(target){
-      target.classList.add('nearest');
-      target.scrollIntoView({behavior:'smooth', block:'center'});
-    }
-  }
-
-  // 5) Wire Near Me without blocking original handlers
-  function wireEnhancedNearMe(){
-    const btn = document.getElementById('nearBtn')/*removed*/;
-    if(!btn || btn.__cc_wired) return;
-    btn.__cc_wired = true;
-    btn.addEventListener('click', function(e){
-      // don't stop propagation; let original near-me run too
-      if(!navigator.geolocation){ return; }
-      navigator.geolocation.getCurrentPosition(pos=>{
-        const you = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        const {store} = nearestStore(you.lat, you.lng) || {};
-        // Try to open Leaflet popup on nearest store
-        var map = window.__cc_map;
-        if(map && window.L && store){
-          try{
-            // keep the original dot behavior; just show nearest info
-            const html = '<div class="popup">'
-                       +   '<h3>'+ store.name +'</h3>'
-                       +   '<div class="addr">'+ fullAddress(store) +'</div>'
-                       +   (store.phone?('<div style="margin:6px 0"><a href="tel:'+store.phone+'">'+store.phone+'</a></div>'):'')
-                       +   '<div class="row"><a class="btn-sm" target="_blank" rel="noopener" href="'+ gmapsLink(store) +'">Directions</a></div>'
-                       + '</div>';
-            setTimeout(function(){
-              try{ L.popup({autoPan:true}).setLatLng([store.lat,store.lng]).setContent(html).openOn(map); }catch(_){}
-            }, 250);
-          }catch(_){}
-        } else if(store){
-          // lite fallback: gentle alert (we keep UX minimal)
-          alert('Nearest store:\\n'+store.name+'\\n'+fullAddress(store)+(store.phone?('\\n'+store.phone):''));
-        }
-        // Highlight the card if list is open
-        highlightNearestCard(store);
-      }, function(){ /* ignore geoloc errors */ });
-    }, false);
-  }
-
-  // 6) Run hooks
-  function run(){
-    removeOldLegend();
-    wireEnhancedNearMe();
-  }
-  if(document.readyState === 'complete'){ run(); }
-  window.addEventListener('load', run);
-})();
-</script>
-
-<script>
-(function(){
-  // --- helpers ---
-  function toRad(t){ return t*Math.PI/180; }
-  function distKm(a,b){
-    const R=6371, dLat=toRad(b.lat-a.lat), dLon=toRad(b.lng-a.lng);
-    const la=toRad(a.lat), lb=toRad(b.lat);
-    const h=Math.sin(dLat/2)**2 + Math.cos(la)*Math.cos(lb)*Math.sin(dLon/2)**2;
-    return 2*R*Math.asin(Math.sqrt(h));
-  }
-  function fullAddress(r){ return [r.address,r.city,r.state,r.zip].filter(Boolean).join(", "); }
-  function gmapsLink(r){ return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(fullAddress(r)); }
-  function nearestStore(lat, lng){
-    let best=null, bestD=1e12;
-    const rows = (window.LOCATIONS||[]);
-    for(let i=0;i<rows.length;i++){
-      const r=rows[i], d=distKm({lat,lng},{lat:r.lat,lng:r.lng});
-      if(d<bestD){ bestD=d; best=r; }
-    }
-    return {store:best, km:bestD};
-  }
-  function highlightNearestCard(store){
-    const list = document.getElementById('listview');
-    if (!list || list.style.display !== 'block' || !store) return;
-    list.querySelectorAll('.card.nearest').forEach(el => el.classList.remove('nearest'));
-    const cards = list.querySelectorAll('.card');
-    let target=null;
-    cards.forEach(card=>{ if(!target && (card.textContent||"").indexOf(store.name)!==-1) target = card; });
-    if(target){ target.classList.add('nearest'); target.scrollIntoView({behavior:'smooth', block:'center'}); }
-  }
-
-  // ensure we have the map reference; if not, try to capture it
-  if(!window.__cc_map && window.L && typeof L.map==='function'){
-    try{
-      // monkey patch if needed (will only fire on next init)
-      const _map = L.map;
-      L.map = function(){ const m=_map.apply(this, arguments); try{ window.__cc_map = m; }catch(e){} return m; };
-    }catch(e){}
-  }
-
-  function wireNearMeOverride(){
-    const btn = document.getElementById('nearBtn')/*removed*/;
-    if(!btn || btn.__cc_override) return;
-    btn.__cc_override = true;
-    btn.addEventListener('click', function(e){
-      // override previous listeners to ensure both behaviors happen exactly as we want
-      e.preventDefault(); e.stopImmediatePropagation();
-      if(!navigator.geolocation){ alert('Geolocation not supported'); return; }
-      navigator.geolocation.getCurrentPosition(pos=>{
-        const you = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        const {store} = nearestStore(you.lat, you.lng) || {};
-
-        // If Leaflet is available
-        if(window.__cc_map && window.L){
-          const map = window.__cc_map;
-          try{
-            // Clear previous "you are here" marker if any
-            if(window.__cc_here && map.hasLayer(window.__cc_here)) try{ map.removeLayer(window.__cc_here); }catch(_){}
-            window.__cc_here = L.circleMarker(you, {radius:7,color:'var(--brand-purple)',fillColor:'var(--brand-purple)',fillOpacity:.5})
-                                 .addTo(map).bindPopup('You are here');
-            window.__cc_here.openPopup();
-          }catch(_){}
-          if(store){
-            const html = '<div class="popup">'
-                       +   '<h3>'+ store.name +'</h3>'
-                       +   '<div class="addr">'+ fullAddress(store) +'</div>'
-                       +   (store.phone?('<div style="margin:6px 0"><a href="tel:'+store.phone+'">'+store.phone+'</a></div>'):'')
-                       +   '<div class="row"><a class="btn-sm" target="_blank" rel="noopener" href="'+ gmapsLink(store) +'">Directions</a></div>'
-                       + '</div>';
-            try{
-              // fit both points on screen nicely
-              const bounds = L.latLngBounds([you, [store.lat, store.lng]]).pad(0.2);
-              map.fitBounds(bounds, {animate:true});
-              setTimeout(()=>{ try{ L.popup({autoPan:true}).setLatLng([store.lat,store.lng]).setContent(html).openOn(map); }catch(e){} }, 350);
-            }catch(_){}
-          }
-        } else {
-          // Fallback: just show nearest info
-          if(store){
-            alert('Nearest store:\\n'+store.name+'\\n'+fullAddress(store)+(store.phone?('\\n'+store.phone):''));
-          }
-        }
-        // also highlight in list view if it's open
-        highlightNearestCard(store);
-      }, ()=> alert("Couldn't get location"));
-    }, true); // capture to override any earlier listeners
-  }
-
-  if(document.readyState === 'complete'){ wireNearMeOverride(); }
-  window.addEventListener('load', wireNearMeOverride);
-})();
-</script>
-
-
-<script>
-(function(){
-  function ensureListToggle(){
-    var btn = document.getElementById('toggleBtn');
-    if (!btn) return;
-    // Replace the element to remove any previous listeners
-    var clone = btn.cloneNode(true);
-    btn.parentNode.replaceChild(clone, btn);
-    clone.addEventListener('click', function(){
-      var listEl = document.getElementById('listview');
-      var mapEl = document.getElementById('map');
-      var lite = document.getElementById('liteMap');
-      if (!listEl) return;
-      var showing = (listEl.style.display === 'block');
-      if (!showing && typeof renderList === 'function') renderList();
-      if (showing){
-        listEl.style.display = 'none';
-        if (mapEl) mapEl.style.display = '';
-        if (lite) lite.style.display = (window.L ? 'none' : 'block');
-        clone.textContent = 'Card view';
-      } else {
-        listEl.style.display = 'block';
-        if (mapEl) mapEl.style.display = 'none';
-        if (lite) lite.style.display = 'none';
-        clone.textContent = 'Map view';
-      }
-    });
-  }
-  if (document.readyState === 'complete') ensureListToggle();
-  window.addEventListener('load', ensureListToggle);
-})();
-</script>
-
-
-<script>
-(function(){
-  function updateFooterVisibility(){
-    var list = document.getElementById('listview');
-    var bar = document.querySelector('.bottom-bar');
-    if(!bar) return;
-    var shown = list && window.getComputedStyle(list).display === 'block';
-    document.body.classList.toggle('hide-footer', !!shown);
-    // inline style backup (in case CSS is late)
-    bar.style.display = shown ? 'none' : '';
-  }
-  function wire(){
-    updateFooterVisibility(); // initial
-    var btn = document.getElementById('toggleBtn');
-    if(btn && !btn.__cc_footerWired){
-      btn.__cc_footerWired = true;
-      btn.addEventListener('click', function(){
-        setTimeout(updateFooterVisibility, 0);
-      }, true);
-    }
-  }
-  if(document.readyState === 'complete'){ wire(); }
-  window.addEventListener('load', wire);
-})();
-</script>
-
 </body>
 </html>
